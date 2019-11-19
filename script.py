@@ -1,6 +1,7 @@
-# from __future__ import print_function
+from __future__ import print_function
 
 import tensorflow
+from datetime import datetime
 from pyspark import SparkContext, SparkConf
 from keras.utils.data_utils import get_file
 import numpy as np
@@ -15,9 +16,6 @@ from keras.layers import Conv2D, MaxPooling2D
 from elephas.utils.rdd_utils import to_simple_rdd
 from elephas.spark_model import SparkModel
 import numpy
-
-conf = SparkConf().setAppName('elephas_app').setMaster('spark://hp:7077')
-sc = SparkContext(conf=conf)
 
 path = './cifar-10-batches-py/'
 
@@ -80,7 +78,13 @@ model.add(Activation('softmax'))
 model.compile(loss='categorical_crossentropy',
               optimizer=SGD())
 
-rdd = to_simple_rdd(sc, x_train, y_train)
+pairs = [(x, y) for x, y in zip(x_train, y_train)]
+rdd =  sc.parallelize(pairs, 2)
+# rdd = to_simple_rdd(sc, x_train, y_train)
 
+t1 = datetime.now()
 spark_model = SparkModel(model, frequency='epoch', mode='asynchronous')
-spark_model.fit(rdd, epochs=2, batch_size=32, verbose=1, validation_split=0.1)
+spark_model.fit(rdd, epochs=1, batch_size=64, verbose=1, validation_split=0.1)
+t2 = datetime.now()
+
+print(t2 - t1)
