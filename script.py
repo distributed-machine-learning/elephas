@@ -17,6 +17,9 @@ from elephas.utils.rdd_utils import to_simple_rdd
 from elephas.spark_model import SparkModel
 import numpy
 
+conf = SparkConf().setAppName('training_app').setMaster('spark://localhost:7077')
+sc = SparkContext(conf=conf)
+
 path = './cifar-10-batches-py/'
 
 num_train_samples = 50000
